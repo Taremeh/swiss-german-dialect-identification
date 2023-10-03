@@ -79,12 +79,12 @@ model.add(Masking(mask_value=0.,
                                vocab_size),
                   name='Masking'))
 
-model.add(LSTM(output_dim=lstm_size,
-               dropout_U=0.2,
-               dropout_W=0.2,
+model.add(LSTM(units=lstm_size,
+               recurrent_dropout=0.2,
+               dropout=0.2,
                name='LSTM'))
 
-model.add(Dense(output_dim=4,
+model.add(Dense(units=4,
                 activation='softmax',
                 name='Softmax'))
 

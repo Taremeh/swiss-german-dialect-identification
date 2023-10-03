@@ -8,7 +8,7 @@ import os
 import sys
 
 import numpy as np
-from keras.layers import Dense, Embedding, LSTM
+from keras.layers import Dense, Embedding, LSTM, Dropout
 from keras.models import Sequential
 
 np.random.seed(42)
@@ -67,15 +67,16 @@ model = Sequential()
 model.add(Embedding(input_dim=vocab_size + 1,
                     output_dim=embedding_size,
                     mask_zero=True,
-                    dropout=0.1,
-                    name='Character Embedding'))
+                    name='Character-Embedding'))
 
-model.add(LSTM(output_dim=lstm_size,
-               dropout_U=0.2,
-               dropout_W=0.2,
+model.add(Dropout(0.1))
+
+model.add(LSTM(units=lstm_size,
+               recurrent_dropout=0.2,
+               dropout=0.2,
                name='LSTM'))
 
-model.add(Dense(output_dim=4,
+model.add(Dense(units=4,
                 activation='softmax',
                 name='Softmax'))
 
@@ -117,7 +118,7 @@ def save_model(i, model,
 for i, nb_epoch in enumerate(nb_epochs):
     model.fit(X_train, y_train,
               batch_size=batch_size,
-              nb_epoch=nb_epoch,
+              epochs=nb_epoch,
               validation_data=(X_dev, y_dev),
               verbose=1)
 
