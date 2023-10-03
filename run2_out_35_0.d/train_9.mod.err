@@ -1,0 +1,56 @@
+* Load training data
+   1000 sequences loaded
+   2000 sequences loaded
+   3000 sequences loaded
+   4000 sequences loaded
+   5000 sequences loaded
+   6000 sequences loaded
+   7000 sequences loaded
+   8000 sequences loaded
+   9000 sequences loaded
+  10000 sequences loaded
+  11000 sequences loaded
+* Initialize the model
+* Summary
+    nb train:    11727
+    nb labels:   5
+    nb blocks:   134329
+    nb features: 671665
+* Train the model with l-bfgs
+  [   1] obj=111582.35  act=273413   err=50.51%/52.03% time=0.13s/0.13s
+  [   2] obj=16651.43   act=255742   err=44.63%/46.35% time=0.08s/0.21s
+  [   3] obj=15344.57   act=292524   err=38.90%/42.33% time=0.35s/0.56s
+  [   4] obj=14725.30   act=293346   err=38.59%/41.13% time=0.07s/0.63s
+  [   5] obj=14332.51   act=291709   err=36.92%/41.02% time=0.08s/0.71s
+  [   6] obj=13733.78   act=286986   err=34.87%/38.63% time=0.09s/0.80s
+  [   7] obj=13436.39   act=286790   err=32.95%/37.81% time=0.15s/0.95s
+  [   8] obj=13205.32   act=284507   err=33.16%/37.59% time=0.15s/1.11s
+  [   9] obj=12988.38   act=281995   err=32.28%/37.23% time=0.14s/1.25s
+  [  10] obj=12914.82   act=276964   err=36.53%/39.24% time=0.09s/1.33s
+  [  11] obj=11908.61   act=273989   err=31.41%/36.02% time=0.08s/1.41s
+  [  12] obj=11347.69   act=269230   err=31.44%/35.00% time=0.08s/1.49s
+  [  13] obj=10569.92   act=267091   err=27.85%/32.46% time=0.08s/1.57s
+  [  14] obj=9946.99    act=262096   err=27.06%/31.19% time=0.08s/1.65s
+  [  15] obj=9360.12    act=254758   err=23.70%/28.52% time=0.07s/1.72s
+  [  16] obj=8784.80    act=247476   err=22.89%/27.41% time=0.08s/1.80s
+  [  17] obj=8318.24    act=242169   err=20.34%/25.31% time=0.08s/1.87s
+  [  18] obj=7830.13    act=236574   err=19.49%/24.21% time=0.08s/1.95s
+  [  19] obj=7435.95    act=231090   err=17.26%/22.09% time=0.08s/2.03s
+  [  20] obj=7010.26    act=226010   err=16.13%/20.99% time=0.08s/2.11s
+  [  21] obj=6667.89    act=221102   err=14.67%/19.53% time=0.07s/2.18s
+  [  22] obj=6299.73    act=216252   err=13.51%/18.27% time=0.08s/2.26s
+  [  23] obj=5984.57    act=210359   err=12.00%/16.72% time=0.08s/2.34s
+  [  24] obj=5651.43    act=202377   err=11.17%/15.79% time=0.07s/2.41s
+  [  25] obj=5350.32    act=195198   err= 9.75%/14.30% time=0.08s/2.49s
+  [  26] obj=5078.60    act=185617   err= 8.79%/13.17% time=0.07s/2.56s
+  [  27] obj=4865.28    act=175364   err= 7.70%/11.91% time=0.07s/2.64s
+  [  28] obj=4656.99    act=163143   err= 7.06%/11.01% time=0.08s/2.72s
+  [  29] obj=4465.02    act=148859   err= 6.02%/ 9.77% time=0.07s/2.79s
+  [  30] obj=4294.65    act=133836   err= 5.54%/ 9.11% time=0.08s/2.87s
+  [  31] obj=4148.68    act=115398   err= 4.72%/ 7.97% time=0.08s/2.94s
+  [  32] obj=4027.13    act=101616   err= 4.21%/ 7.35% time=0.08s/3.02s
+  [  33] obj=3906.94    act=88512    err= 3.77%/ 6.63% time=0.07s/3.09s
+  [  34] obj=3784.36    act=75620    err= 3.17%/ 5.94% time=0.08s/3.17s
+  [  35] obj=3691.91    act=64468    err= 2.70%/ 5.24% time=0.08s/3.25s
+* Save the model
+* Done

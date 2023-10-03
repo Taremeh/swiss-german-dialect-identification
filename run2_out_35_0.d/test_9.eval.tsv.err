@@ -1,0 +1,13 @@
+* Load model
+* Label sequences
+      1000 sequences labeled	11.17%/15.00%
+    Nb sequences  : 1303
+    Token error   : 11.08%
+    Sequence error: 14.58%
+* Per label statistics
+    main    Pr=nan  Rc=0.00  F1=nan
+    LU      Pr=0.92  Rc=0.83  F1=0.87
+    BS      Pr=0.88  Rc=0.88  F1=0.88
+    ZH      Pr=0.88  Rc=0.95  F1=0.91
+    BE      Pr=0.88  Rc=0.91  F1=0.89
+* Done
