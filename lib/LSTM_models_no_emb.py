@@ -13,6 +13,14 @@ np.random.seed(42)
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Masking
+import tensorflow as tf
+
+os.environ['CUDA_VISIBLE_DEVICES'] = str(3)
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+config = tf.compat.v1.ConfigProto(log_device_placement=True)
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.allow_growth = True
+tf_session = tf.compat.v1.Session(config=config)  # noqa: F841
 
 # In[2]:
 

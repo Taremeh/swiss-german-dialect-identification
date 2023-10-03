@@ -10,9 +10,16 @@ import sys
 import numpy as np
 from keras.layers import Dense, Embedding, LSTM, Dropout
 from keras.models import Sequential
+import tensorflow as tf
 
 np.random.seed(42)
 
+os.environ['CUDA_VISIBLE_DEVICES'] = str(3)
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+config = tf.compat.v1.ConfigProto(log_device_placement=True)
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.allow_growth = True
+tf_session = tf.compat.v1.Session(config=config)  # noqa: F841
 
 # In[30]:
 
