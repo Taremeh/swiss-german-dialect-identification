@@ -249,7 +249,7 @@ if test_models:
         X_train, X_dev, X_test = [dec_X(X, dec) for X in data_model['X']]
         y_train, y_dev, y_test = [dec_y(y) for y in data_model['y']]
 
-        vec = CountVectorizer('content',
+        vec = CountVectorizer(input='content',
                               analyzer='char_wb',
                               ngram_range=(2, 7))
         clf = SGDClassifier()
