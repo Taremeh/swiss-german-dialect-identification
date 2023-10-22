@@ -17,7 +17,7 @@ from keras.callbacks import EarlyStopping
 import tensorflow as tf
 import keras_tuner as kt
 
-gpus = ['0', '1', '2', '3', '4', '5', '6', '7']
+gpus = ['0', '1', '2', '3'] #'4', '5', '6', '7']
 os.environ['CUDA_VISIBLE_DEVICES'] = (",").join(gpus)
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 config = tf.compat.v1.ConfigProto(log_device_placement=True)
@@ -101,7 +101,7 @@ def build_model(hp):
                         activation='relu',
                         name=f'Dense_layer_{i}'))
 
-    model.add(Dense(units=hp.Int('dense_units', min_value=16, max_value=128, step=16),
+    model.add(Dense(units=4,
                     activation='softmax',
                     name='Softmax'))
 
@@ -149,6 +149,9 @@ def save_model(i, model,
     with open(os.path.join(path, 'model_info_%d.json' % i), 'w') as json_file:
         json_file.write(model_info_json)
 
+
+gpu_names = [f'GPU:{num}' for num in gpus]
+
 # Define a tuner
 tuner = kt.Hyperband(
     build_model,
@@ -156,7 +159,7 @@ tuner = kt.Hyperband(
     max_epochs=100,
     factor=3,
     directory='results',
-    distribution_strategy=tf.distribute.MirroredStrategy(devices=gpus)  # Assign GPUs to workers
+    distribution_strategy=tf.distribute.MirroredStrategy(devices=gpu_names)  # Assign GPUs to workers
 )
 
 # Search for the best hyperparameters
