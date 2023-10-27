@@ -4,6 +4,8 @@ This repository is based on [VarDial Workshop Paper](http://web.science.mq.edu.a
 
 We extended the work by analyzing the reproduced results, conducting an extensive hyperparameter search, ablating and extending the model architecture, investigating the impact of the training dataset size on model performance.    
 
+Find our report here: [Classifying Swiss German Dialects Using Neural Networks.pdf](https://github.com/Taremeh/swiss-german-dialect-identification/files/13189929/Classifying.Swiss.German.Dialects.Using.Neural.Networks.pdf)
+
 ### Prerequisites for running the code under Linux/MacOS:
   - our tested environment: Anaconda 4.3.0 with Python 3 https://www.continuum.io/downloads and Keras 1
   - wapiti command line tool https://wapiti.limsi.fr
