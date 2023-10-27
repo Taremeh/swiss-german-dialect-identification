@@ -36,8 +36,6 @@ def encode_data(X, encoder,
                 padding=padding,
                 truncating=truncating,
                 padding_value=0):
-    # `fit=True` for training, `fit=False` otherwise
-    # for production: better intelligently replace chars not in encoder
     return pad_sequences(([[encoder[c] for c in s] for s in X] if fit else
                           # in dev and test, if char not in encoder, ignore it
                           [[encoder[c] for c in s if c in encoder] for s in X]),
@@ -58,7 +56,6 @@ def encode_store(input_str,
     assert padding_value == 0
 
     # encoder data
-    # prepend with a padding value, truncate long sequences at the end
     encoder = dict({"#": 0, "u": 1, "2": 2, "n": 3, "d": 4, " ": 5, "e": 6, "t": 7, "h": 8, "m": 9, "g": 10, "\u00e4": 11, "l": 12, "r": 13, "i": 14, "o": 15, "9": 16, "b": 17, "8": 18, "s": 19, "a": 20, "\u00f6": 21, "v": 22, "w": 23, "p": 24, "z": 25, "f": 26, "\u00fc": 27, "k": 28, "j": 29, "1": 30, "\u0303": 31, "\u0300": 32, "3": 33, "x": 34, "q": 35, "c": 36})
     print('# chars %d' % len(encoder))
 
@@ -86,8 +83,7 @@ def onehot_encode_data(X, vocab_size):
 #
 # Main Script
 #
-INPUT_STRING = "Aber zisti wär o immet no okay. Mitteuch hätti meh zyt aber"
-
+INPUT_STRING = "das isch en testsatz fürd vorhersag vom modell."
 
 # Encode Input String
 X_pred = encode_store(input_str=INPUT_STRING)
