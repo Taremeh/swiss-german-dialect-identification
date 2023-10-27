@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# In[1]:
-
 import os
 import sys
 import json
@@ -13,11 +11,15 @@ np.random.seed(42)
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Masking
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import tensorflow as tf
 import keras_tuner as kt
+from sklearn.metrics import f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-gpus = ['0', '1', '2', '3'] #'4', '5', '6', '7']
+
+gpus = ['0'] #'4', '5', '6', '7']
 os.environ['CUDA_VISIBLE_DEVICES'] = (",").join(gpus)
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 config = tf.compat.v1.ConfigProto(log_device_placement=True)
@@ -25,26 +27,13 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.7
 config.gpu_options.allow_growth = True
 tf_session = tf.compat.v1.Session(config=config)  # noqa: F841
 
-# In[2]:
 
-"""
-one-directional LSTM model without character embedding
-
- * define a model and run for 400 iterations without early stopping,
- * store model params at every 100 iterations.
-"""
-
-# In[3]:
-
+# select data model, we use "model+charrep+augm"
 data_model = sys.argv[1]
 print('Using data model "%s".' % data_model)
 
-#lstm_size = 90
-#nb_epochs = (100,) * 4
+# define batch size and directories
 batch_size = 32
-
-# In[49]:
-
 data_dir = 'preprocessed_data.d/paper_runs/'
 models_dir = 'lstm_models.d/paper_runs'
 
@@ -67,6 +56,7 @@ def load_data(data_model, fn):
         dtype=np.dtype('int32'))
 
 
+# load and encode data
 X_train = load_data(data_model, 'X_train')
 vocab_size = X_train.max()  # NB: 0 is not in the vocabulary, but is padding
 seq_length = X_train.shape[1]
@@ -81,25 +71,20 @@ y_dev = load_data(data_model, 'y_dev')
 y_test = load_data(data_model, 'y_test')
 print('Loaded data.')
 
-# Define a hypermodel for tuning
+# define a hypermodel for tuning
 def build_model(hp):
     model = Sequential()
     model.add(Masking(mask_value=0.,
                       input_shape=(seq_length, vocab_size),
                       name='Masking'))
 
-    for i in range(hp.Choice('num_lstm_layers', values=[1, 2])):
-        model.add(LSTM(units=hp.Int(f'lstm_units_layer_{i}', min_value=32, max_value=256, step=32),
-                       recurrent_dropout=hp.Float(f'recurrent_dropout_layer_{i}', min_value=0.1, max_value=0.5,
-                                                  step=0.1),
-                       dropout=hp.Float(f'dropout_layer_{i}', min_value=0.1, max_value=0.5, step=0.1),
-                       return_sequences=(i < hp.Choice('num_lstm_layers', values=[1, 2])),
-                       name=f'LSTM_layer_{i}'))
+    lstm_layers = hp.Choice('num_lstm_layers', values=[1])
 
-    for i in range(hp.Choice('num_dense_layers', values=[0, 1])):
-        model.add(Dense(units=hp.Int(f'dense_units_layer_{i}', min_value=16, max_value=128, step=16),
-                        activation='relu',
-                        name=f'Dense_layer_{i}'))
+    model.add(LSTM(units=hp.Int(f'lstm_units_layer_0', min_value=32, max_value=256, step=32),
+                    recurrent_dropout=hp.Float(f'recurrent_dropout_layer_0', min_value=0.1, max_value=0.5,
+                                                step=0.1),
+                    dropout=hp.Float(f'dropout_layer_0', min_value=0.1, max_value=0.5, step=0.1),
+                    name=f'LSTM_layer_0'))
 
     model.add(Dense(units=4,
                     activation='softmax',
@@ -118,73 +103,112 @@ def build_model(hp):
 
     return model
 
-def save_model(i, model,
-               data_model,
-               with_emb=True,
-               test_loss=None,
-               test_accuracy=None
-               ):
-    path = os.path.join(models_dir,
-                        ('emb' if with_emb else 'no_emb'),
-                        data_model)
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
 
-    # serealize model
-    model_json = model.to_json()
-    with open(os.path.join(path,
-                           'model_%d.json' % i), 'w') as json_file:
-        json_file.write(model_json)
+# overload build_model function as a way to manually specify hyperparameters
+def build_model(num_lstm_layers, lstm_units_layer_0, recurrent_dropout_layer_0, dropout_layer_0, optimizer, learning_rate):
+    model = Sequential()
+    model.add(Masking(mask_value=0.,
+                      input_shape=(seq_length, vocab_size),
+                      name='Masking'))
 
-    # serialize weights
-    model.save_weights(os.path.join(path,
-                                    'model_%d.h5' % i))
+    model.add(LSTM(units=lstm_units_layer_0,
+                    recurrent_dropout=recurrent_dropout_layer_0,
+                    dropout=dropout_layer_0,
+                    name=f'LSTM_layer_0'))
 
-    # Add test_loss and test_accuracy to model JSON
-    model_info = {
-        'test_loss': test_loss,
-        'test_accuracy': test_accuracy
-    }
-    model_info_json = json.dumps(model_info)
-    with open(os.path.join(path, 'model_info_%d.json' % i), 'w') as json_file:
-        json_file.write(model_info_json)
+    model.add(Dense(units=4,
+                    activation='softmax',
+                    name='Softmax'))
+
+    if optimizer == 'adam':
+        optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    else:
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=learning_rate)
+
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=optimizer,
+                  metrics=['accuracy', 'categorical_accuracy'])
+
+    return model
 
 
-gpu_names = [f'GPU:{num}' for num in gpus]
+# define model checkpoint callback
+filepath = 'best_model.hdf5'
+checkpoint = ModelCheckpoint(filepath=filepath,
+                             monitor='val_accuracy',
+                             verbose=1,
+                             save_best_only=True,
+                             mode='max')
 
-# Define a tuner
-tuner = kt.Hyperband(
-    build_model,
-    objective=kt.Objective('val_loss', direction='min'),
-    max_epochs=100,
-    factor=3,
-    directory='results',
-    distribution_strategy=tf.distribute.MirroredStrategy(devices=gpu_names)  # Assign GPUs to workers
-)
 
-# Search for the best hyperparameters
-tuner.search(X_train, y_train,
-             epochs=100,
-             validation_data=(X_dev, y_dev),
-             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=8)])
+# build the model with the fixed hyperparameters
+model = build_model(**fixed_hyperparameters)
 
-# Get the best hyperparameters
-best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+# train the model
+model.fit(X_train, y_train,
+          batch_size=batch_size,
+          epochs=100,  # Adjust as needed
+          validation_data=(X_dev, y_dev),
+          verbose=1,
+          callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=10), checkpoint])
 
-# Build the model with the best hyperparameters
-best_model = tuner.hypermodel.build(best_hps)
+#
+# Evaluation
+#
 
-# Train the best model on the entire training set
-#best_model.fit(X_train, y_train,
-#               batch_size=batch_size,
-#               epochs=20,  # Adjust as needed
-#               validation_data=(X_dev, y_dev),
-#               verbose=1)
+# Load best model
+model = tf.keras.models.load_model('best_model.hdf5')
+print(f"Amount of samples during training: {X_train.shape[0]}")
 
-# Evaluate the best model on the test set
-test_loss, test_accuracy = best_model.evaluate(X_test, y_test, batch_size=batch_size)
+# Dev Set Evaluation
+test_loss, test_accuracy, test_categorical_accuracy = model.evaluate(X_dev, y_dev, batch_size=batch_size)
+print(f'Dev Loss: {test_loss}')
+print(f'Dev Accuracy: {test_accuracy:.2%}')
+
+# F1 scores
+y_pred = model.predict(X_dev)
+y_pred = np.argmax(y_pred, axis=1)
+y_true = np.argmax(y_dev, axis=1)
+
+# Calculate F1 score
+f1_m = f1_score(y_true, y_pred, average='macro')
+f1_w = f1_score(y_true, y_pred, average='weighted')
+
+print(f'Dev F1 Score (macro): {f1_m:.2%}')
+print(f'Dev F1 Score (weighted): {f1_w:.2%}')
+
+
+# Test Set Evaluation
+
+# Evaluate the model on the test set
+test_loss, test_accuracy, test_categorical_accuracy = model.evaluate(X_test, y_test, batch_size=batch_size)
 
 print(f'Test Loss: {test_loss}')
-print(f'Test Accuracy: {test_accuracy}')
+print(f'Test Accuracy: {test_accuracy:.2%}')
 
-save_model(0, best_model, data_model, with_emb=False, test_loss=test_loss, test_accuracy=test_accuracy)
+
+# F1 scores
+y_pred = model.predict(X_test)
+y_pred = np.argmax(y_pred, axis=1)
+y_true = np.argmax(y_test, axis=1)
+
+# Calculate F1 score
+f1_m = f1_score(y_true, y_pred, average='macro')
+f1_w = f1_score(y_true, y_pred, average='weighted')
+
+print(f'Test F1 Score (macro): {f1_m:.2%}')
+print(f'Test F1 Score (weighted): {f1_w:.2%}')
+
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_true, y_pred)
+
+# Plot confusion matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['LU', 'BE', 'ZH', 'BS'], yticklabels=['LU', 'BE', 'ZH', 'BS'])
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Test Set Confusion Matrix')
+
+# Save the plot
+plt.savefig('confusion_matrix.png')
+plt.show()
