@@ -18,7 +18,7 @@ from sklearn.metrics import f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
+# CUDA configuration
 gpus = ['0'] #'4', '5', '6', '7']
 os.environ['CUDA_VISIBLE_DEVICES'] = (",").join(gpus)
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
